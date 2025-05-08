@@ -3,10 +3,10 @@ from oci_cli.cli_session import export
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-
 # Define base for models
-Base = declarative_base()
+# from app.database import Base
 
+Base = declarative_base()
 
 # Employee model definition
 class Employee(Base):

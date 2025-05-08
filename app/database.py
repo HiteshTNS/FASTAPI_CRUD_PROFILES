@@ -1,18 +1,19 @@
-# database.py
+# app/database.py
 import os
 import urllib
-from sqlalchemy import create_engine
+from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
-from app.models.employee import Base
-import os
-from dotenv import load_dotenv
+from app.models.employee import Base  # Your declarative Base from models
 
-# Load environment variables from .env file
-load_dotenv(override=True)
-# Create properly encoded connection string
+# Load env vars
+load_dotenv()
+
+# Create connection string
 params = urllib.parse.quote_plus(
-    "DRIVER={ODBC Driver 17 for SQL Server};"
+    f"DRIVER={{ODBC Driver 17 for SQL Server}};"
     f"SERVER={os.getenv('DB_SERVER')},{os.getenv('DB_PORT')};"
     f"DATABASE={os.getenv('DB_NAME')};"
     f"UID={os.getenv('DB_USER')};"
@@ -22,20 +23,38 @@ params = urllib.parse.quote_plus(
     "Domain=TNSSINC;"
 )
 
-connection_string = f"mssql+pyodbc:///?odbc_connect={params}"
-print("🔧 [DB] Final connection string:", connection_string)
+DATABASE_URL = f"mssql+aioodbc:///?odbc_connect={params}"
 
-# Create the engine
-engine = create_engine(connection_string, echo=True)
+# Create the async engine for db creation
+engine: AsyncEngine = create_async_engine(
+    DATABASE_URL,
+    echo=True,
+    pool_size=10,           # Number of connections in the pool
+    max_overflow=20,        # Maximum number of connections that can be created in excess of pool_size
+    pool_pre_ping=True,     # Test connections before using them
+)
 
-# Create a session maker
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Create session factory to manage db transactions
+async_session = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
+# async_session
+# Dependency
+async def get_db():   #called when interating with db and session will be cosed when the trasnaction id over
+    async with async_session() as db:  #async with creates the session object
+        try:
+            yield db
+        finally:
+            await db.close()
+            print("🧹 DB session closed.")
 
-# Function to create tables
-def create_db_tables():
-    try:
-        print("Creating tables...")
-        Base.metadata.create_all(bind=engine)
-        print("✅ Tables created successfully.")
-    except SQLAlchemyError as e:
-        print("❌ Failed to create tables:", e)
+# Async table creation
+# async def create_db_tables():
+#     try:
+#         async with engine.begin() as conn:  #async with is the context manager ensures the connection is properly hand;ed
+#             await conn.run_sync(Base.metadata.create_all)
+#         print("✅ Tables created successfully.")
+#     except SQLAlchemyError as e:
+#         print(f"❌ Failed to create tables: {e}")
