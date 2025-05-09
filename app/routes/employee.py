@@ -15,6 +15,8 @@ from app.services.employee_service import (
     get_employee_by_emp_code
 )
 
+from app.core.config import settings
+
 router = APIRouter()
 print("employee router file loaded")
 
@@ -77,7 +79,10 @@ async def delete_employee_route(emp_code: str, db: AsyncSession = Depends(get_db
         return await delete_employee(db, emp_code)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
-@router.get("/settings")
-async def get_settings():
-    from app.config.settings import settings
-    return settings.dict()
+
+
+
+
+@router.get("/config")
+async def get_config():
+    return settings.model_dump()

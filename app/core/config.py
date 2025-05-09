@@ -1,5 +1,4 @@
 # app/core/config.py
-
 import os
 import yaml
 from dotenv import load_dotenv
@@ -25,7 +24,7 @@ class AppConfig(BaseModel):
     def load_from_yaml(cls):
         # Get the environment
         env = os.getenv('FASTAPI_ENV', 'dev')
-        config_file = os.path.join(os.path.dirname(__file__), f"../settings/{env}.yml")
+        config_file = os.path.join(os.path.dirname(__file__), f"../profiles/{env}.yml")
 
         print(f"Loading configuration from: {config_file}")
 
