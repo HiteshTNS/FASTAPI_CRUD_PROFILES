@@ -7,34 +7,32 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from app.models.employee import Base  # Your declarative Base from models
+from app.core.config import settings
 
-# Load env vars
-load_dotenv()
-
-# Create connection string
 params = urllib.parse.quote_plus(
-    f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-    f"SERVER={os.getenv('DB_SERVER')},{os.getenv('DB_PORT')};"
-    f"DATABASE={os.getenv('DB_NAME')};"
-    f"UID={os.getenv('DB_USER')};"
-    f"PWD={os.getenv('DB_PASSWORD')};"
-    "Encrypt=yes;"
-    "TrustServerCertificate=yes;"
-    "Domain=TNSSINC;"
-)
+            f"DRIVER={settings.db.driver};"
+            f"SERVER={settings.db.host},{settings.db.port};"
+            f"DATABASE={settings.db.database};"
+            f"UID={settings.db.username};"
+            f"PWD={settings.db.password};"
+            f"Encrypt={'yes' if settings.db.encrypt else 'no'};"
+            f"TrustServerCertificate={'yes' if settings.db.trust_server_certificate else 'no'};"
+            f"Domain={settings.db.domain};"
+        )
 
 DATABASE_URL = f"mssql+aioodbc:///?odbc_connect={params}"
 
-# Create the async engine for db creation
+
+print(f"🔗 DATABASE_URL: {DATABASE_URL}")
+
 engine: AsyncEngine = create_async_engine(
     DATABASE_URL,
     echo=True,
-    pool_size=10,           # Number of connections in the pool
-    max_overflow=20,        # Maximum number of connections that can be created in excess of pool_size
-    pool_pre_ping=True,     # Test connections before using them
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True
 )
 
-# Create session factory to manage db transactions
 async_session = sessionmaker(
     bind=engine,
     class_=AsyncSession,

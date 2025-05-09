@@ -1,4 +1,5 @@
 # app/main.py
+import os
 from logging import exception
 from urllib.request import Request
 
@@ -10,6 +11,8 @@ from app.models import employee, address
 from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
 
+from app.core.config import settings
+
 app = FastAPI(
     title="Employee Management API",
     description="This is a test project for async FastAPI with MSSQL",
@@ -19,6 +22,7 @@ app = FastAPI(
 # Create tables on startup
 @app.on_event("startup")
 async def startup():
+    print(f"🚀 Running in {os.getenv('FASTAPI_ENV', 'dev')} environment")
     try:
         async with engine.begin() as conn:
             await conn.run_sync(employee.Base.metadata.create_all)
@@ -47,4 +51,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         status_code=422,
         content={"detail": errors},
     )
+
+@app.get("/config")
+async def get_config():
+    return settings.model_dump()
+
 

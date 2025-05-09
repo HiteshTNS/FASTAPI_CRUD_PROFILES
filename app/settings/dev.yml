@@ -1,0 +1,11 @@
+db:
+  driver: ODBC Driver 17 for SQL Server
+  host: 10.0.2.134
+  port: 1433
+  database: TrainingDec2024
+  username: trainingusertns
+  password: TNStu@2025
+  encrypt: true
+  trust_server_certificate: true
+  domain: TNSSINC
+

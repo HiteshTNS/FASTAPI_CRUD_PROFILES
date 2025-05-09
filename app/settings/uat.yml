@@ -1,0 +1,11 @@
+db:
+  driver: ODBC Driver 18 for SQL Server
+  host: 10.0.2.134
+  port: 1433
+  database: xyz
+  username: abc
+  password: xyz
+  encrypt: true
+  trust_server_certificate: true
+  domain: TNSSINC
+
