@@ -1,6 +1,6 @@
 import asyncio
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
 import logging
 
 from sqlalchemy import delete
@@ -18,6 +18,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+from app.utils.jwt import create_access_token
+from app.utils.security import verify_password
+
+# from app.services.auth_service import get_current_user
+
+from app.utils.security import hash_password
 
 # Set up logging using Python's standard logging module
 logging.basicConfig(level=logging.INFO)
@@ -45,11 +51,13 @@ async def create_employee(db: AsyncSession, employee_data: EmployeeCreate):
             }
 
         # Create employee
+        hashed_password = hash_password(employee_data.password)
         new_employee = Employee(
             emp_code=employee_data.emp_code,
             first_name=employee_data.first_name,
             last_name=employee_data.last_name,
-            email=employee_data.email
+            email=employee_data.email,
+            password=hashed_password
         )
         db.add(new_employee)
         await db.flush()  # Ensure emp_code is available
@@ -222,3 +230,5 @@ async def delete_employee(db: AsyncSession, emp_code: str):
         await db.rollback()
         print(f"❌ Failed to delete employee: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to delete employee: {e}")
+
+

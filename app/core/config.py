@@ -15,7 +15,9 @@ class DatabaseConfig(BaseModel):
     encrypt: bool
     trust_server_certificate: bool
     domain: str
-
+    secret_key: str
+    jwt_algorithm: str
+    jwt_expiration_minutes: int
 
 class AppConfig(BaseModel):
     db: DatabaseConfig
@@ -37,3 +39,4 @@ class AppConfig(BaseModel):
 
 
 settings = AppConfig.load_from_yaml()
+

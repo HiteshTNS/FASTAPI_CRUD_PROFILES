@@ -6,11 +6,10 @@ from urllib.request import Request
 from fastapi import FastAPI
 from app.database import engine
 from app.routes.employee import router as employee_router
-
+from app.routes.auth import router as auth_router
 from app.models import employee, address
 from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
-
 from app.core.config import settings
 
 app = FastAPI(
@@ -37,6 +36,7 @@ async def ping():
     return {"message": "🏓 Pong! FastAPI is running."}
 
 app.include_router(employee_router, prefix="/api", tags=["Employee"])
+app.include_router(auth_router, prefix="/api")
 
 
 @app.exception_handler(RequestValidationError)

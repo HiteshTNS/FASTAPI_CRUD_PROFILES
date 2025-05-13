@@ -8,4 +8,6 @@ db:
   encrypt: true
   trust_server_certificate: true
   domain: TNSSINC
-
+  secret_key: sdsdsdefdd3434445fdfdf
+  jwt_algorithm: HS256
+  jwt_expiration_minutes: 10

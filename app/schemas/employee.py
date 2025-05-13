@@ -8,6 +8,7 @@ class EmployeeCreate(BaseModel):
     first_name: str = Field(..., min_length=1, max_length=50)
     last_name: str = Field(..., min_length=1, max_length=50)
     email: EmailStr = Field(..., min_length=5, max_length=100)
+    password:str =  Field(..., min_length=5, max_length=100)
     addresses: List[AddressCreate]
 
     @field_validator("emp_code", "first_name", "last_name", "email", mode="before")

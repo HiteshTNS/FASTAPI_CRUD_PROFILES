@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, joinedload
 from app.database import async_session,get_db
@@ -17,6 +18,8 @@ from app.services.employee_service import (
 
 from app.core.config import settings
 
+from app.services.auth_service import verify_token
+
 router = APIRouter()
 print("employee router file loaded")
 
@@ -30,6 +33,7 @@ print("employee router file loaded")
 #         db.close()
 #         print("🧹 DB session closed.")
 
+
 @router.post("/employee")
 async def create(emp: EmployeeCreate, db: AsyncSession = Depends(get_db)):  #dependency injection
     try:
@@ -41,7 +45,7 @@ async def create(emp: EmployeeCreate, db: AsyncSession = Depends(get_db)):  #dep
         raise HTTPException(status_code=500, detail=f"Failed to create employee: {str(e)}")
 
 # Get employee by emp_code
-@router.get("/employee/{emp_code}", response_model=EmployeeCreate)
+@router.get("/employee/{emp_code}", dependencies=[Depends(verify_token)],response_model=EmployeeCreate)
 async def get_employee(emp_code: str, db: AsyncSession = Depends(get_db)):
     employee = await get_employee_by_emp_code(db, emp_code)
     if not employee:
@@ -50,7 +54,7 @@ async def get_employee(emp_code: str, db: AsyncSession = Depends(get_db)):
 
 
 # Get all employees
-@router.get("/employees", response_model=List[EmployeeCreate])
+@router.get("/employees",dependencies=[Depends(verify_token)], response_model=List[EmployeeCreate])
 async def get_employees(db: AsyncSession = Depends(get_db)):
     try:
         return await get_all_employees(db)
@@ -58,7 +62,7 @@ async def get_employees(db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
 
 # Update employee by emp_code
-@router.put("/employees/{emp_code}", response_model=dict)
+@router.put("/employees/{emp_code}", dependencies=[Depends(verify_token)],response_model=dict)
 async def update_employee_endpoint(emp_code: str, employee_data: EmployeeUpdate, db: AsyncSession = Depends(get_db)):
     try:
         # Call the service function to update the employee
@@ -73,7 +77,7 @@ async def update_employee_endpoint(emp_code: str, employee_data: EmployeeUpdate,
         raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
 
 # Delete employee by emp_code
-@router.delete("/employee/{emp_code}")
+@router.delete("/employee/{emp_code}",dependencies=[Depends(verify_token)])
 async def delete_employee_route(emp_code: str, db: AsyncSession = Depends(get_db)):
     try:
         return await delete_employee(db, emp_code)
@@ -86,3 +90,11 @@ async def delete_employee_route(emp_code: str, db: AsyncSession = Depends(get_db
 @router.get("/config")
 async def get_config():
     return settings.model_dump()
+
+class LoginRequest(BaseModel):
+    emp_code: str
+    password: str
+
+# @router.post("/login")
+# async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
+#     return await login_employee(db=db, emp_code=request.emp_code, password=request.password)

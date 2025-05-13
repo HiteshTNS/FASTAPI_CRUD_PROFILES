@@ -18,7 +18,7 @@ class Employee(Base):
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     email = Column(String(255), nullable=False, unique=True)
-
+    password = Column(String(255))
     # Relationship with Address model
     addresses = relationship("Address", back_populates="employee")
     def __repr__(self):
