@@ -24,19 +24,21 @@ class AppConfig(BaseModel):
 
     @classmethod
     def load_from_yaml(cls):
-        # Get the environment
-        env = os.getenv('FASTAPI_ENV', 'dev')
-        config_file = os.path.join(os.path.dirname(__file__), f"../profiles/{env}.yml")
+        try:
+            # Get the environment
+            env = os.getenv('FASTAPI_ENV', 'dev')
+            config_file = os.path.join(os.path.dirname(__file__), f"../profiles/{env}.yml")
+            print(f"Loading configuration from: {config_file}")
+             # Load YAML
+            with open(config_file, "r") as file:
+                config_data = yaml.safe_load(file)
 
-        print(f"Loading configuration from: {config_file}")
-
-        # Load YAML
-        with open(config_file, "r") as file:
-            config_data = yaml.safe_load(file)
-
-        print(f"RAW YAML DATA LOADED:\n{config_data}")
-        return cls(**config_data)  ##initializes the AppConfig Object and validated with DataBaseconfig defined above
-
+            print(f"RAW YAML DATA LOADED:\n{config_data}")
+            return cls(**config_data)  ##initializes the AppConfig Object and validated with DataBaseconfig defined above
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Configuration file '{config_file}' not found.")
+        except yaml.YAMLError as e:
+            raise ValueError(f"Error parsing YAML file '{config_file}': {e}")
 
 settings = AppConfig.load_from_yaml()
 
